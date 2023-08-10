@@ -27,3 +27,10 @@ Test it to make sure it worked
 */
 
 SELECT * FROM fixtures2016
+
+
+/* 
+Of course its simple to use these code snippets to make a fixture for other seasons too!
+Use this website: https://afltables.com/afl/seas/season_idx.html
+to check if your tables worked (mine did!).
+*/
