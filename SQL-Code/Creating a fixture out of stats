@@ -1,0 +1,29 @@
+/* 
+I have a table game_stats with all the individual stats for players throughout the 2016 season
+game-by-game. From this I'm creating a table to make the fixture in an easily used form for SQL.
+I'm also using this as a learning opportunity for my SQL skills.
+
+This first query creates an ordered list that the fixture can be gleaned from.
+*/
+
+CREATE TABLE fixture2016 AS 
+SELECT DISTINCT Team, round from game_stats
+WHERE Season=2016
+
+/*
+Used the row numbers (as they were ordered by the fixture) to pair off
+teams that are playing against each other for that week
+*/
+
+CREATE TABLE fixtures2016 AS
+SELECT Team, round,
+   FLOOR((ROW_NUMBER() OVER (
+	ORDER BY round
+   )+1)/2) pairfixtures2016
+   FROM fixture2016
+
+/*
+Test it to make sure it worked
+*/
+
+SELECT * FROM fixtures2016
