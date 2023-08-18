@@ -1,7 +1,8 @@
 # I wanted to add a ranking of each player in every game using supercoach, as I suspect
 # that unless they are one of the top players as assesed by SC they won't get any votes.
 # There are two data files I used here: the SC scores I obtained off the web and 
-# a fixtures dataset I made in SQL from the complete stats I obtained off Ben.
+# a fixtures dataset I made in SQL from the complete stats I obtained off Ben 
+# see my SQL code in this repository for how I did this.
 
 num_games<-max(fixtures$pair)
 
