@@ -1,0 +1,33 @@
+# This is how I obtained the historical supercoach scores for seasons 2016-2022.
+# I checked the robots.txt for the site and I was allowed to webscrape the supercoach scores.
+# To obtain other years (including the COVID year), you simply adjust the limits of rounds and years. 
+
+player_supercoach_scores<-NULL
+rounds<-1:23
+years<-2021:2022
+link1<-"https://www.footywire.com/afl/footy/supercoach_round?year="
+library(progress)
+pb <- progress_bar$new(total = length(rounds)*length(years))
+for (y in 1:length(years)){
+  for (round_number in 1:length(rounds)){
+    link<-paste(link1,years[y],"&round=",round_number,"&p=",sep="")
+    # print(link)
+    html <- getURL(link)
+    round_supercoach_scores <-readHTMLTable(
+      html,stringsAsFactors = FALSE)$'supercoach-content-table'
+    round_supercoach_scores$'Round'<-round_number
+    round_supercoach_scores$'Year'<-years[y]
+    round_supercoach_scores$'Supercoach Score'<-round_supercoach_scores[,6]
+    
+    # COVID closed AFL after round 18 in 2020, so no data for rounds 19-23 in that year
+    
+    tryCatch({
+      player_supercoach_scores<-rbind(player_supercoach_scores,
+                                      round_supercoach_scores[,c('Rank', 'Player',
+                                                                 'Team','Year','Round',
+                                                                 'Supercoach Score')])
+    }, error = function(e){})
+    pb$tick()
+  }
+}
+
