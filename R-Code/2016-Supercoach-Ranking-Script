@@ -1,0 +1,57 @@
+# I wanted to add a ranking of each player in every game using supercoach, as I suspect
+# that unless they are one of the top players as assesed by SC they won't get any votes.
+# There are two data files I used here: the SC scores I obtained off the web and 
+# a fixtures dataset I made in SQL from the complete stats I obtained off Ben.
+
+num_games<-max(fixtures$pair)
+
+# Team names for supercoach scores are different to those in fixtures
+# Have to change place names to team names, backup fixtures
+
+# fixtures_backup<-fixtures
+
+# Code for copying
+# fixtures[fixtures$Team=="",]$Team<-""
+
+# fixtures[fixtures$Team=="Richmond",]$Team<-"Tigers"
+# fixtures[fixtures$Team=="Carlton",]$Team<-"Blues"
+# fixtures[fixtures$Team=="Melbourne",]$Team<-"Demons"             
+# fixtures[fixtures$Team=="Greater Western Sydney",]$Team<-"Giants" 
+# fixtures[fixtures$Team=="Gold Coast",]$Team<-"Suns"
+# fixtures[fixtures$Team=="Essendon",]$Team<-"Bombers"              
+# fixtures[fixtures$Team=="North Melbourne",]$Team<-"Kangaroos" 
+# fixtures[fixtures$Team=="Adelaide",]$Team<-"Crows"
+# fixtures[fixtures$Team=="Sydney",]$Team<-"Swans" 
+# fixtures[fixtures$Team=="Collingwood",]$Team<-"Magpies"
+# fixtures[fixtures$Team=="Western Bulldogs",]$Team<-"Bulldogs" 
+# fixtures[fixtures$Team=="Fremantle",]$Team<-"Dockers"           
+# fixtures[fixtures$Team=="Port Adelaide",]$Team<-"Power" 
+# fixtures[fixtures$Team=="St Kilda",]$Team<-"Saints" 
+# fixtures[fixtures$Team=="West Coast",]$Team<-"Eagles"   
+# fixtures[fixtures$Team=="Brisbane Lions",]$Team<-"Lions" 
+# fixtures[fixtures$Team=="Geelong",]$Team<-"Cats" 
+# fixtures[fixtures$Team=="Hawthorn",]$Team<-"Hawks"
+
+SC_Scores_Ranked<-NULL
+
+library(progress)
+pb <- progress_bar$new(total = num_games)
+for (current_round in 1:max(fixtures$round)){
+  # Make sure you don't forget the comma when selecting things from a vector
+  round_matches<-fixtures[fixtures$round==current_round,]
+  round_SCscores<-supercoach_scores[supercoach_scores$Round==current_round & 
+                                      supercoach_scores$Year==2016,]
+  for (game_no in min(round_matches$pair):max(round_matches$pair)){
+    current_game<-round_matches[round_matches$pair==game_no,]
+    game_SCscores<-round_SCscores[round_SCscores$Team %in% 
+                                    current_game$Team,]
+    
+    # Note that the supercoach scores come already ranked, no need to sort
+    
+    ranked_game_SCscores<-game_SCscores
+    ranked_game_SCscores$Rank<-1:length(ranked_game_SCscores$Player)
+    SC_Scores_Ranked<-rbind(SC_Scores_Ranked,ranked_game_SCscores)
+    pb$tick()
+  }
+  
+}
