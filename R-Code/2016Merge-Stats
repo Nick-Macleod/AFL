@@ -1,0 +1,9 @@
+# Merge the supercoach scores with the complete stats
+FinStats<-NULL
+rounds<-1:23
+for (round in rounds){
+  Round_SC<-SuperCoach[SuperCoach$Round==round,]
+  RoundStats<-PlayerStats[PlayerStats$Round==round,]
+  CurrentResult <- merge(Round_SC,RoundStats,by=c("First.Name","Last.Name"))
+  FinStats<-rbind(FinStats,CurrentResult)
+}
