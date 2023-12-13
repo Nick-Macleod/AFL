@@ -1,0 +1,15 @@
+# Creates a list of the rucks who played majorities of games for both teams
+
+Num_Games<-max(PlayerStatsFixtures$Pairs)
+
+# Order the stats by % played
+
+OrdPcPlayStats<-PlayerStatsFixtures[order(PlayerStatsFixtures$PercentagePlayed,decreasing = TRUE),]
+No1Rucks<- data.frame()
+
+# Take the highest two playing rucks for each game
+
+for (i in 1:Num_Games){
+  No1Rucks<-rbind(No1Rucks,head(PlayerStatsFixtures[
+    (PlayerStatsFixtures$Position=="Ruck"&PlayerStatsFixtures$Pairs==i),],2))
+}
