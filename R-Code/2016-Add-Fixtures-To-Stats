@@ -27,3 +27,5 @@ PlayerPairs[6214]<-999
 PlayerStatsFixtures$Pairs<-PlayerPairs
 # I will delete both rows but leaving this for posterity. Use -c() as an index
 # to take the complement of that subset of rows
+# Edit: Easier to use
+# PlayerStatsFixtures<-PlayerStatsFixtures[PlayerStatsFixtures$Pairs<999,]
