@@ -1,0 +1,29 @@
+# PlayerStatsFixtures
+PlayerStatsFixtures<-PlayerStats
+PlayerPairs<-rep(0,nrow(PlayerStats))
+for (i in 1:nrow(PlayerStats)){
+  CurrentRound<-fixtures[fixtures$round==PlayerStats$Round[i],]
+  CurrentTeam<-CurrentRound[CurrentRound$Team==PlayerStats$Team[i],]
+  PlayerPairs[i]<-CurrentTeam$pair
+}
+# NB: Use Position(function(x) x == 0, PlayerPairs) to find problematic entries 
+# when performing something like this.
+# Entry 6214 in PlayerStats is a duplicated score for Scott Thompson of 
+# Kangaroos, who shares the same name as Scott Thompson from the Crows, and has
+# repeated the Adelaide entry.
+for (i in 6215:nrow(PlayerStats)){
+  CurrentRound<-fixtures[fixtures$round==PlayerStats$Round[i],]
+  CurrentTeam<-CurrentRound[CurrentRound$Team==PlayerStats$Team[i],]
+  PlayerPairs[i]<-CurrentTeam$pair
+}
+# Again for 6314, Adelaide S Thompson has Roos S Thompson's score for the bye.
+for (i in 6315:nrow(PlayerStats)){
+  CurrentRound<-fixtures[fixtures$round==PlayerStats$Round[i],]
+  CurrentTeam<-CurrentRound[CurrentRound$Team==PlayerStats$Team[i],]
+  PlayerPairs[i]<-CurrentTeam$pair
+}
+PlayerPairs[6314]<-999
+PlayerPairs[6214]<-999
+PlayerStatsFixtures$Pairs<-PlayerPairs
+# I will delete both rows but leaving this for posterity. Use -c() as an index
+# to take the complement of that subset of rows
