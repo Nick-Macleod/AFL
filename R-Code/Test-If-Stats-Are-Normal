@@ -1,0 +1,34 @@
+# This will test the normality of AFL ruck data using Pearson's Chi-Squared test
+# Note: We have n=382 data points
+
+# Use next line to define sample vector
+# samples <- No1Rucks$(Insert Statistic Here)
+# samples <- No1Rucks$Kicks
+  
+smp_mean <- mean(samples)
+smp_sd <- sd(samples)
+
+bins <- rep(0,9)
+for (i in 1:9){
+  bins[i] <- qnorm(i/10,smp_mean,smp_sd)
+}
+
+expected_in_bins <- 382/10
+
+sample_bins <- rep(0,10)
+sample_bins[1] <- length(samples[samples<=bins[1]])
+for (i in 2:9){
+  sample_bins[i] <-length(samples[samples>bins[i-1]&samples<=bins[i]]) 
+}
+sample_bins[10] <- length(samples[samples>bins[9]])
+
+# Note: Our degrees of freedom is 10-3=7 since we estimated n, mean, and
+# standard deviation from our data. So we use chi-squared(10)
+
+diff_bins <- sample_bins-expected_in_bins
+bins_stat <- (diff_bins^2)/expected_in_bins
+chi_squared_stat <- sum(bins_stat)
+
+df <- length(sample_bins-3)
+p_val <- 1-pchisq(chi_squared_stat,df)
+print(p_val)
