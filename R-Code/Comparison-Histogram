@@ -1,0 +1,5 @@
+# Note: I got given the first line from Ben, this is the first time I've used it.
+
+par(mfrow=c(2,1))
+hist(No1Rucks$OnePercenters)
+hist(No1Rucks[No1Rucks$BrownlowBinary==1,]$OnePercenters)
