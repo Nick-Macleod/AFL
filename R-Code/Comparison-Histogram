@@ -12,6 +12,6 @@ RuckStat=colnames(No1Rucks)[i]
 # Note: I was given the first line from Ben, this is the first time I've used it.
 par(mfrow=c(2,1))
 hist(eval(parse(text=paste0("No1Rucks$",RuckStat))),
-     breaks = 0:max(eval(parse(text=paste0("No1Rucks$",RuckStat)))))
+     breaks = 0:max(eval(parse(text=paste0("No1Rucks$",RuckStat)))),xlab=RuckStat)
 hist(eval(parse(text=paste0("No1Rucks[No1Rucks$BrownlowBinary==1,]$",RuckStat))),
-     breaks = 0:max(eval(parse(text=paste0("No1Rucks$",RuckStat)))))
+     breaks = 0:max(eval(parse(text=paste0("No1Rucks$",RuckStat)))),xlab=RuckStat)
