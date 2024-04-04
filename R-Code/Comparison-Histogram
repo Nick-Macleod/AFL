@@ -1,6 +1,14 @@
 # Note: I was given the first line from Ben, this is the first time I've used it.
 # To ensure we get integer bins, we tell R to set the breaks (for the bins) at a seq of integer values.
 
+# We have 40 columns in No1Rucks
+
+i=23
+
+RuckStat=colnames(No1Rucks)[i]
+
+# Note paste0 concatenates strings with no separator.
+
 par(mfrow=c(2,1))
-hist(No1Rucks$MarksInside50,breaks = 0:max(No1Rucks$MarksInside50))
-hist(No1Rucks[No1Rucks$BrownlowBinary==1,]$MarksInside50, breaks = 0:max(No1Rucks$MarksInside50))
+hist(paste0("No1Rucks$",RuckStat),breaks = 0:max(paste0("No1Rucks$",RuckStat)))
+hist(paste0("No1Rucks[No1Rucks$BrownlowBinary==1,]$",RuckStat, breaks = 0:max(paste0("No1Rucks$",RuckStat)))
