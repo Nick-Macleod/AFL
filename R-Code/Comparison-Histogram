@@ -1,4 +1,3 @@
-# Note: I was given the first line from Ben, this is the first time I've used it.
 # To ensure we get integer bins, we tell R to set the breaks (for the bins) at a seq of integer values.
 
 # We have 40 columns in No1Rucks
@@ -7,8 +6,12 @@ i=23
 
 RuckStat=colnames(No1Rucks)[i]
 
-# Note paste0 concatenates strings with no separator.
+# Note: paste0 concatenates strings with no separator. parse(text="") tells R to treat a string as an expression.
+# You also need eval to get the actual vector out of it.
 
+# Note: I was given the first line from Ben, this is the first time I've used it.
 par(mfrow=c(2,1))
-hist(paste0("No1Rucks$",RuckStat),breaks = 0:max(paste0("No1Rucks$",RuckStat)))
-hist(paste0("No1Rucks[No1Rucks$BrownlowBinary==1,]$",RuckStat, breaks = 0:max(paste0("No1Rucks$",RuckStat)))
+hist(eval(parse(text=paste0("No1Rucks$",RuckStat))),
+     breaks = 0:max(eval(parse(text=paste0("No1Rucks$",RuckStat)))))
+hist(eval(parse(text=paste0("No1Rucks[No1Rucks$BrownlowBinary==1,]$",RuckStat))),
+     breaks = 0:max(eval(parse(text=paste0("No1Rucks$",RuckStat)))))
