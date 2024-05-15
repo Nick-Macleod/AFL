@@ -1,0 +1,79 @@
+# Using the datacamp Principal Component Analysis page to learn this technique:
+# https://www.datacamp.com/tutorial/pca-analysis-r
+# Some comments taken directly from the page.
+# See also:
+# https://www.soa.org/digital-publishing-platform/emerging-topics/principal-component-analysis-using-r/
+
+# This is an R package for correlation analysis. It mainly focuses on creating and handling R data frames.
+install.packages("corrr")
+library('corrr')
+
+# The ggcorrplot package provides multiple functions but is not limited to the
+# ggplot2 function that makes it easy to visualize correlation matrix
+install.packages("ggcorrplot")
+library(ggcorrplot)
+
+# Mainly used for multivariate exploratory data analysis; 
+# the factoMineR package gives access to the PCA module to perform principal component analysis. 
+install.packages("FactoMineR")
+library("FactoMineR")
+
+install.packages("factoextra")
+library("factoextra")
+
+# Example of finding column number from name
+# which(colnames(No1Rucks)=="PointDifference")
+# [1] 28
+
+# To do PCA we need to normalize data, which means we also have to remove all categorical data.
+# No1Rucks_numeric <- No1Rucks[,c(5:28,31,33,40)]
+# PCA is unsupervised learning so we need to remove the response (ie brownlow votes)
+# No1Rucks_numeric <- No1Rucks_numeric[, !names(No1Rucks_numeric)=="BrownlowVotes"]
+
+No1Rucks_normal <- scale(No1Rucks_numeric)
+
+corr_matrix <- cor(No1Rucks_normal)
+# Visualise the correlation matrix if you need
+# ggcorrplot(corr_matrix)
+
+# The function princomp() calculates the PCA, and summary() function shows the result.
+data.pca <- princomp(corr_matrix)
+summary(data.pca)
+
+# How they relate to each column using the loadings of each principal component. 
+data.pca$loadings[, 1:13]
+
+# Scree plot. It is used to visualize the importance of each principal component
+# and can be used to determine the number of principal components to retain. 
+# The scree plot can be generated using the fviz_eig() function. 
+fviz_eig(data.pca, addlabels = TRUE)
+
+# With the biplot, it is possible to visualize the similarities and dissimilarities
+# between the samples, and further shows the impact of each attribute on each of the principal components.
+fviz_pca_var(data.pca, col.var = "black")
+
+# How much each variable is represented in a given component. 
+# Such a quality of representation is called the Cos2 and corresponds to the square cosine, 
+# and it is computed using the fviz_cos2 function.
+fviz_cos2(data.pca, choice = "var", axes = 1:13)
+
+# Can combine previous two plots by color coding biplot
+fviz_pca_var(data.pca, col.var = "cos2",
+             gradient.cols = c("black", "orange", "green"),
+             repel = TRUE)
+
+
+
+
+# Note that prcomp uses Singular Value Decomposition (SVD) while princomp uses spectral decomposition
+# This was written by Ben to find the correlation between the principal components and Bronwlow Binary
+p1 = prcomp(No1Rucks_normal)
+# Applys to the 2nd index, which is the column. Gives variance of columns
+apply(p1$x, 2, var)
+# This notation (ie $x), returns the eigenvectors (components) for data
+p1$x
+
+
+for(i in 1:ncol(p1$x)){
+  print(cor(p1$x[,i], No1Rucks$BrownlowBinary))
+}
