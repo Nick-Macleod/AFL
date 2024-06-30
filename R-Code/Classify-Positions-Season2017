@@ -1,0 +1,95 @@
+# This script classifies the positions of players in 2017 according to the
+# methodology described on The Arc by Matt Cowgill
+# https://thearcfooty.com/2016/10/15/classifying-players-positions-using-public-data/
+
+library(fitzRoy)
+library(tidyverse)
+library(cluster)
+
+# Pull AFL stats using fitzRoy for season to classify positions (2017 in this case)
+# Note that this package uses tibbles from tidyverse
+
+AFL_Stats_2017 <- fetch_player_stats(2017)
+# Get rid of columns that are useless or empty
+AFL_Stats_2017 <- subset(AFL_Stats_2017, select = -c(providerId, utcStartTime, 
+                                                     status, compSeason.shortName,
+                                                     player.photoURL, teamId, gamesPlayed, 
+                                                     superGoals, ranking, lastUpdated))
+# Names, jumper, captain, and team names are duplicated so delete the column with the longer name
+AFL_Stats_2017 <- subset(AFL_Stats_2017, 
+                         select = -c(player.player.player.captain, player.player.player.givenName,
+                                     player.player.player.surname, player.player.player.playerId,
+                                     player.player.player.playerJumperNumber))
+AFL_Stats_2017 <- subset(AFL_Stats_2017, select = -c(home.team.club.name, away.team.club.name))
+# These are empty fopr 2017 stats
+AFL_Stats_2017 <- subset(AFL_Stats_2017, select = -c(goalEfficiency, shotEfficiency, 
+                                                     interchangeCounts))
+
+# Create season summaries of statistics used for classifying
+  
+Position_Stats_2017 <- subset(AFL_Stats_2017,
+                              select = c(goals, behinds, marksInside50, marks,
+                                         rebound50s, hitouts, tackles, inside50s,
+                                         clearances.totalClearances, contestedPossessions,
+                                         onePercenters, shotsAtGoal, goalAssists, Player,
+                                         timeOnGroundPercentage, disposals))
+Position_Stats_2017$non.clearance.contestedPossesions <- Position_Stats_2017$contestedPossessions - 
+                                                Position_Stats_2017$clearances.totalClearances
+Position_Stats_2017$other.disposals <- Position_Stats_2017$disposals - Position_Stats_2017$goalAssists - 
+                                    Position_Stats_2017$shotsAtGoal - Position_Stats_2017$contestedPossessions - 
+                                    Position_Stats_2017$inside50s
+Position_Stats_2017$marksOutside50 <- Position_Stats_2017$marks - Position_Stats_2017$marksInside50
+
+AFL_Player_Names_2017 <- Position_Stats_2017$Player
+Scaled_Pos_Stats_2017$Player <- AFL_Player_Names_2017
+Unique_Names_AFL2017 <- unique(AFL_Player_Names_2017)
+AFL_Player_Seasons2017 <- data.frame()
+AFL_Player_Seasons_Avg_pGame2017 <- data.frame()
+
+
+for (player in Unique_Names_AFL2017){
+  Players_Season <- Position_Stats_2017[Position_Stats_2017$Player == player,]
+  Players_Season_Stats <- subset(Players_Season,
+                                 select = -c(contestedPossessions,
+                                             Player, goals, behinds, marks, disposals))
+  No_Games_Played <- nrow(Players_Season_Stats)
+  # colSums returns a matrix so need to specify it as a dataframe
+  Players_Season_Totals <- as.data.frame(t(colSums(Players_Season_Stats)))
+  # This could be done in one line but it feels wrong to do so in my head
+  Players_Season_Totals_pFullGame <- Players_Season_Totals*No_Games_Played*100/
+                                 sum(Players_Season_Totals$timeOnGroundPercentage)
+  Players_Season_Avg_pGame <- Players_Season_Totals_pFullGame/No_Games_Played
+  Players_Season_Totals_pFullGame$Player <- player 
+  Players_Season_Totals_pFullGame$Games.Played <- No_Games_Played
+  Players_Season_Avg_pGame$Player <- player 
+  Players_Season_Avg_pGame <- subset(Players_Season_Avg_pGame, 
+                                     select = -timeOnGroundPercentage)
+  # Players_Season_Avg_pGame$Games.Played <- No_Games_Played
+  AFL_Player_Seasons2017 <- rbind(AFL_Player_Seasons2017,
+                                  Players_Season_Totals_pFullGame)
+  AFL_Player_Seasons_Avg_pGame2017 <- rbind(AFL_Player_Seasons_Avg_pGame2017,
+                                            Players_Season_Avg_pGame)
+}
+
+AFL_Player_Seasons_Scaled_Avg_pGame2017 <- as.data.frame(
+                                            scale(subset(AFL_Player_Seasons_Avg_pGame2017,
+                                                        select = -Player)))
+row.names(AFL_Player_Seasons_Scaled_Avg_pGame2017) <- AFL_Player_Seasons2017$Player
+# Run the k-medoids PAM algorithm in the Cluster package
+# Usies 8 clusters (positions) as suggested by The Arc
+PAM.Output <- pam(AFL_Player_Seasons_Scaled_Avg_pGame2017, 8, 
+    metric = "euclidean", stand = FALSE) 
+# stand = TRUE standardizes columns before running algorithm
+
+
+
+
+
+# This needs to be redone so that we create the season summaries first and THEN
+# use them to create averages per game, then scale these averages per game and classify using them.
+
+# This is an alternative method where we scale each game first then take the averages
+#Pos_Stats_perG_2017 <- subset(Position_Stats_2017,
+#                              select = -c(timeOnGroundPercentage,
+#                                          Player))*100/Position_Stats_2017$timeOnGroundPercentage
+#Scaled_Pos_Stats_2017 <- as.data.frame(scale(Pos_Stats_perG_2017))
