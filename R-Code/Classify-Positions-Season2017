@@ -1,22 +1,27 @@
+# This script classifies the positions of AFL players in the 2017 season. 
+# It uses Matt Cowgill's methodology from his website The Arc:
+# https://thearcfooty.com/2016/10/15/classifying-players-positions-using-public-data/
+
 library(fitzRoy)
 library(tidyverse)
 library(cluster)
 
 # Pull AFL stats for season to classify positions (2017 in this case)
 
-AFL_Stats_2017 <- fetch_player_stats(2017)
+AFL_Stats_Complete_2017 <- fetch_player_stats(2017)
 # Get rid of columns that are useless or empty
-AFL_Stats_2017 <- subset(AFL_Stats_2017, select = -c(providerId, utcStartTime, 
+AFL_Stats_2017 <- subset(AFL_Stats_Complete_2017, select = -c(providerId, utcStartTime, 
                                                      status, compSeason.shortName,
                                                      player.photoURL, teamId, gamesPlayed, 
                                                      superGoals, ranking, lastUpdated))
+AFL_Stats_2017$Player <-  paste(AFL_Stats_2017$player.givenName,AFL_Stats_2017$player.surname, sep = " ")
 # Names, jumper, captain, and team names are duplicated so delete the column with the longer name
 AFL_Stats_2017 <- subset(AFL_Stats_2017, 
                          select = -c(player.player.player.captain, player.player.player.givenName,
                                      player.player.player.surname, player.player.player.playerId,
                                      player.player.player.playerJumperNumber))
 AFL_Stats_2017 <- subset(AFL_Stats_2017, select = -c(home.team.club.name, away.team.club.name))
-# These are empty fopr 2017 stats
+# These are empty for 2017 stats
 AFL_Stats_2017 <- subset(AFL_Stats_2017, select = -c(goalEfficiency, shotEfficiency, 
                                                      interchangeCounts))
 
@@ -35,6 +40,87 @@ Position_Stats_2017$other.disposals <- Position_Stats_2017$disposals - Position_
                                     Position_Stats_2017$inside50s
 Position_Stats_2017$marksOutside50 <- Position_Stats_2017$marks - Position_Stats_2017$marksInside50
 
+# We have discrepancies between our statistics from the AFL website
+# and player information pulled from AFL tables. Mostly due to differences in names.
+# This function fixes the player name discrepancies.
+
+Player_Info_Name_Fixer <- function(player, Players_Team){
+  Players_Info <- AFL_Players_Info[AFL_Players_Info$Player == 
+                                     sub("^Matthew\\b","Matt", player)& 
+                                     AFL_Players_Info$Team == Players_Team,]
+  if (nrow(Players_Info) == 0){
+    Players_Info <- AFL_Players_Info[AFL_Players_Info$Player == 
+                                       sub("^Matt\\b","Matthew", player)& 
+                                       AFL_Players_Info$Team == Players_Team,]
+  }
+  if (nrow(Players_Info) == 0){
+    Players_Info <- AFL_Players_Info[AFL_Players_Info$Player == 
+                                       sub("^Harry\\b","Harrison", player)& 
+                                       AFL_Players_Info$Team == Players_Team,]
+  }
+  if (nrow(Players_Info) == 0){
+    Players_Info <- AFL_Players_Info[AFL_Players_Info$Player == 
+                                       sub("^Daniel\\b","Dan", player)& 
+                                       AFL_Players_Info$Team == Players_Team,]
+  }
+  if (nrow(Players_Info) == 0){
+    Players_Info <- AFL_Players_Info[AFL_Players_Info$Player == 
+                                       sub("^Cameron\\b","Cam", player)& 
+                                       AFL_Players_Info$Team == Players_Team,]
+  }
+  if (nrow(Players_Info) == 0){
+    Players_Info <- AFL_Players_Info[AFL_Players_Info$Player == 
+                                       sub("^Timothy\\b","Tim", player)& 
+                                       AFL_Players_Info$Team == Players_Team,]
+  }
+  if (nrow(Players_Info) == 0){
+    Players_Info <- AFL_Players_Info[AFL_Players_Info$Player == 
+                                       sub("^Tommy\\b","Tom", player)& 
+                                       AFL_Players_Info$Team == Players_Team,]
+  }
+  if (nrow(Players_Info) == 0){
+    Players_Info <- AFL_Players_Info[AFL_Players_Info$Player == 
+                                       sub("^Harrison\\b","Harry", player)& 
+                                       AFL_Players_Info$Team == Players_Team,]
+  }
+  if (nrow(Players_Info) == 0){
+    Players_Info <- AFL_Players_Info[AFL_Players_Info$Player == 
+                                       sub("^Thomas\\b","Tom", player)& 
+                                       AFL_Players_Info$Team == Players_Team,]
+  }
+  if (nrow(Players_Info) == 0){
+    Players_Info <- AFL_Players_Info[AFL_Players_Info$Player == 
+                                       sub("^Joshua\\b","Josh", player)& 
+                                       AFL_Players_Info$Team == Players_Team,]
+  }
+  if (nrow(Players_Info) == 0){
+    Players_Info <- AFL_Players_Info[AFL_Players_Info$Player == 
+                                       sub("\\bO'","O", player)& 
+                                       AFL_Players_Info$Team == Players_Team,]
+  }
+  if (nrow(Players_Info) == 0){
+    Players_Info <- AFL_Players_Info[AFL_Players_Info$Player == 
+                                       sub("\\bDe\\b","de", player)& 
+                                       AFL_Players_Info$Team == Players_Team,]
+  }
+  return(Players_Info)
+}
+
+
+# I can't think of a clever way to fix the team names
+# so this code block will fix them individually.
+
+# setdiff(AFL_Stats_2017$team.name,AFL_Players_Info$Team)
+# [1] "Sydney Swans"      "Gold Coast SUNS"   "West Coast Eagles" "Adelaide Crows"    "GWS GIANTS"       
+# [6] "Geelong Cats"  
+AFL_Stats_2017[AFL_Stats_2017$team.name == "Sydney Swans",]$team.name <- "Sydney"
+AFL_Stats_2017[AFL_Stats_2017$team.name == "Gold Coast SUNS",]$team.name <- "Gold Coast"
+AFL_Stats_2017[AFL_Stats_2017$team.name == "West Coast Eagles",]$team.name <- "West Coast"
+AFL_Stats_2017[AFL_Stats_2017$team.name == "Adelaide Crows",]$team.name <- "Adelaide"
+AFL_Stats_2017[AFL_Stats_2017$team.name == "GWS GIANTS",]$team.name <- "GWS"
+AFL_Stats_2017[AFL_Stats_2017$team.name == "Geelong Cats",]$team.name <- "Geelong"
+
+
 AFL_Player_Names_2017 <- Position_Stats_2017$Player
 Scaled_Pos_Stats_2017$Player <- AFL_Player_Names_2017
 Unique_Names_AFL2017 <- unique(AFL_Player_Names_2017)
@@ -42,13 +128,20 @@ AFL_Player_Seasons2017 <- data.frame()
 AFL_Player_Seasons_Avg_pGame2017 <- data.frame()
 Problem_Players <- c()
 
-
 for (player in Unique_Names_AFL2017){
   # This variable was previously fetched using fetch player info from
   # AFL tables in fitzRoy package
-  Players_Info <- AFL_Players_Info[AFL_Players_Info$Player == player,]
+  Players_Team <- AFL_Stats_2017[AFL_Stats_2017$Player == player,]$team.name
+  # sub looks for SPACE ANYTHING FULLSTOP SPACE and replaces with one space
+  Players_Info <- AFL_Players_Info[AFL_Players_Info$Player == 
+                                     sub("\\s.\\.\\s"," ", player) & 
+                                      AFL_Players_Info$Team == Players_Team,]
+  if (nrow(Players_Info) == 0){
+    Players_Info <- Player_Info_Name_Fixer(player, Players_Team)
+  }
+  max_cap_no <- max(Players_Info$Cap)
   tryCatch(
-    {Players_Height <- Players_Info$HT[nrow(Players_Info)]
+    {Players_Height <- Players_Info[Players_Info$Cap == max_cap_no,]$HT
     Players_Height <- as.numeric(sub("cm", "",Players_Height))
   Players_Season <- Position_Stats_2017[Position_Stats_2017$Player == player,]
   Players_Season_Stats <- subset(Players_Season,
@@ -70,11 +163,16 @@ for (player in Unique_Names_AFL2017){
   # Players_Season_Avg_pGame$Games.Played <- No_Games_Played
   AFL_Player_Seasons2017 <- rbind(AFL_Player_Seasons2017,
                                     Players_Season_Totals_pFullGame)
-    AFL_Player_Seasons_Avg_pGame2017 <- rbind(AFL_Player_Seasons_Avg_pGame2017,
+  AFL_Player_Seasons_Avg_pGame2017 <- rbind(AFL_Player_Seasons_Avg_pGame2017,
                                               Players_Season_Avg_pGame)},
-  error = function(msg){Problem_Players <- append(Problem_Players,player)}
+  error = function(msg){
+    Problem_Players <- append(Problem_Players,player)
+    }
   ) 
 }
+
+# This checks which players names don't match
+# setdiff(Unique_Names_AFL2017, AFL_Player_Seasons_Avg_pGame2017$Player)
 
 AFL_Player_Seasons_Scaled_Avg_pGame2017 <- as.data.frame(
                                             scale(subset(AFL_Player_Seasons_Avg_pGame2017,
